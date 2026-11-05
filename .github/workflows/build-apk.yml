@@ -49,12 +49,14 @@ jobs:
       
       - name: Fix Java compilation error
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+                    s = s.replace(
+              "super.onActivityResult(request, result, data);",
+              "super.onActivityResult(request, resultCode, data);"
+          )
 
-          p = Path("extracted/THE_VOID_Android_v1_1/app/src/main/java/com/thevoid/ambient/MainActivity.java")
-          s = p.read_text()
+          p.write_text(s)
+
+          p = Path("extracted/THE_
 
           pattern = r'(onActivityResult\s*\(\s*int\s+\w+\s*,\s*int\s+)result(\s*,)'
           s, count = re.subn(pattern, r'\1resultCode\2', s)
