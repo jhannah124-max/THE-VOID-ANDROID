@@ -46,19 +46,29 @@ jobs:
           test -f extracted/THE_VOID_Android_v1_1/settings.gradle.kts
 
       
+      
       - name: Fix Java compilation error
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
           p = Path("extracted/THE_VOID_Android_v1_1/app/src/main/java/com/thevoid/ambient/MainActivity.java")
           s = p.read_text()
-          old = "Uri[] result = result == RESULT_OK"
-          new = "Uri[] result = resultCode == RESULT_OK"
-          if old not in s:
-              raise SystemExit("Expected Java error not found")
-          s = s.replace(old, new)
+
+          pattern = r'(onActivityResult\s*\(\s*int\s+\w+\s*,\s*int\s+)result(\s*,)'
+          s, count = re.subn(pattern, r'\1resultCode\2', s)
+          if count != 1:
+              raise SystemExit("Could not find expected method parameter")
+
+          s = s.replace(
+              "Uri[] result = result == RESULT_OK",
+              "Uri[] result = resultCode == RESULT_OK"
+          )
+
           p.write_text(s)
           PY
+
 
       - name: Build debug APK
         working-directory: extracted/THE_VOID_Android_v1_1
