@@ -45,9 +45,25 @@ jobs:
           unzip -q THE_VOID_Android_v1_1_source.zip -d extracted
           test -f extracted/THE_VOID_Android_v1_1/settings.gradle.kts
 
+      
+      - name: Fix Java compilation error
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("extracted/THE_VOID_Android_v1_1/app/src/main/java/com/thevoid/ambient/MainActivity.java")
+          s = p.read_text()
+          old = "Uri[] result = result == RESULT_OK"
+          new = "Uri[] result = resultCode == RESULT_OK"
+          if old not in s:
+              raise SystemExit("Expected Java error not found")
+          s = s.replace(old, new)
+          p.write_text(s)
+          PY
+
       - name: Build debug APK
         working-directory: extracted/THE_VOID_Android_v1_1
         run: gradle --no-daemon assembleDebug
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
